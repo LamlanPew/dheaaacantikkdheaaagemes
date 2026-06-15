@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Puzzle Untukmu 💗</title>
+<style>
+  :root{
+    --cream:#FFF6F1;
+    --blush:#FFD6E2;
+    --rose:#E8607A;
+    --plum:#5A3A52;
+    --lavender:#D8C3F0;
+    --gold:#F4C95D;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{
+    width:100%; height:100%;
+    font-family:'Quicksand', 'Segoe UI', sans-serif;
+    background: linear-gradient(160deg, var(--cream), var(--blush));
+    color:var(--plum);
+    overflow-x:hidden;
+  }
+  @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Quicksand:wght@400;500;700&display=swap');
+
+  /* ===== PARTIKEL LOVE & BUNGA ===== */
+  #particles{
+    position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden;
+  }
+  .particle{
+    position:absolute; top:-40px; font-size:22px; opacity:.8;
+    animation: fall linear forwards;
+    user-select:none;
+  }
+  @keyframes fall{
+    to{ transform: translateY(110vh) rotate(360deg); opacity:0; }
+  }
+
+  /* ===== LAYOUT UMUM ===== */
+  .screen{
+    position:relative; z-index:1;
+    min-height:100vh; width:100%;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:24px; text-align:center;
+    display:none;
+  }
+  .screen.active{ display:flex; animation: fadeIn .8s ease; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(15px);} to{opacity:1; transform:translateY(0);} }
+
+  h1{
+    font-family:'Dancing Script', cursive;
+    font-size:2.6rem; color:var(--rose);
+    margin-bottom:10px;
+    text-shadow: 0 2px 10px rgba(232,96,122,.25);
+  }
+  p.sub{ font-size:.95rem; color:var(--plum); opacity:.8; margin-bottom:20px; max-width:340px; }
+
+  /* ===== PUZZLE ===== */
+  #puzzle-board{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    width:min(86vw, 360px);
+    height:min(86vw, 360px);
+    gap:3px;
+    border-radius:18px;
+    overflow:hidden;
+    box-shadow:0 12px 30px rgba(232,96,122,.25);
+    border:4px solid #fff;
+    background:#fff;
+  }
+  .piece{
+    background-size: 400% 400%;
+    background-image:var(--puzzle-img);
+    cursor:pointer;
+    transition: transform .15s;
+    border:1px solid rgba(255,255,255,.4);
+  }
+  .piece.selected{ outline:3px solid var(--gold); transform:scale(0.94); z-index:2; }
+  .piece.correct{ outline:2px solid #8de29c; }
+
+  #puzzle-status{ margin-top:18px; font-weight:700; color:var(--rose); min-height:24px; }
+  .hint{ font-size:.8rem; opacity:.7; margin-top:6px; }
+
+  /* ===== TOMBOL ===== */
+  .btn{
+    border:none; border-radius:999px;
+    padding:14px 36px; font-size:1.05rem; font-weight:700;
+    font-family:'Quicksand', sans-serif;
+    cursor:pointer; transition: all .25s ease;
+    box-shadow:0 6px 16px rgba(0,0,0,.08);
+  }
+  .btn-yes{ background:var(--rose); color:#fff; }
+  .btn-yes:hover{ background:#d44a64; transform:scale(1.05); }
+  .btn-no{ background:#fff; color:var(--plum); border:2px solid var(--lavender); }
+
+  .btn-row{
+    display:flex; gap:18px; margin-top:30px; align-items:center; justify-content:center;
+    flex-wrap:wrap;
+  }
+
+  #question-emoji{ font-size:4rem; margin-bottom:6px; animation: pulse 1.6s infinite; }
+  @keyframes pulse{ 0%,100%{transform:scale(1);} 50%{transform:scale(1.12);} }
+
+  /* ===== GALERI BUBBLE ===== */
+  #gallery-screen{
+    overflow:hidden; padding-top:60px; padding-bottom:120px;
+  }
+  #gallery-screen h1{ position:relative; z-index:5; margin-bottom:4px;}
+  #bubble-field{
+    position:relative; width:100%; max-width:480px; height:70vh; min-height:520px;
+  }
+  .bubble{
+    position:absolute;
+    border-radius:50%;
+    overflow:hidden;
+    box-shadow:0 10px 25px rgba(232,96,122,.3), 0 0 0 6px rgba(255,255,255,.7);
+    animation: floatBubble 7s ease-in-out infinite;
+    cursor:pointer;
+    background:#fff;
+  }
+  .bubble img, .bubble video{
+    width:100%; height:100%; object-fit:cover; display:block;
+  }
+  @keyframes floatBubble{
+    0%,100%{ transform: translateY(0px) translateX(0px); }
+    50%{ transform: translateY(-22px) translateX(8px); }
+  }
+
+  /* overlay deskripsi saat bubble ditekan */
+  #bubble-modal{
+    position:fixed; inset:0; background:rgba(90,58,82,.55);
+    display:none; align-items:center; justify-content:center; z-index:50;
+    padding:20px;
+  }
+  #bubble-modal.active{ display:flex; }
+  #bubble-modal .card{
+    background:#fff; border-radius:22px; padding:18px; max-width:340px; width:100%;
+    text-align:center; box-shadow:0 20px 50px rgba(0,0,0,.25);
+  }
+  #bubble-modal .card img, #bubble-modal .card video{
+    width:100%; border-radius:16px; max-height:320px; object-fit:cover; margin-bottom:12px;
+  }
+  #bubble-modal .card p{ font-size:.95rem; color:var(--plum); }
+  #bubble-modal .close-btn{
+    margin-top:14px; background:var(--rose); color:#fff; border:none; border-radius:999px;
+    padding:10px 26px; font-weight:700; cursor:pointer;
+  }
+
+  /* ===== MUSIK ===== */
+  #music-toggle{
+    position:fixed; bottom:18px; right:18px; z-index:60;
+    width:54px; height:54px; border-radius:50%;
+    background:var(--rose); color:#fff; border:none;
+    font-size:1.5rem; cursor:pointer;
+    box-shadow:0 8px 20px rgba(232,96,122,.4);
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  .footer-note{ margin-top:26px; font-size:.8rem; opacity:.65; max-width:320px; z-index:5; position:relative; }
+</style>
+</head>
+<body>
+
+<div id="particles"></div>
+<audio id="bg-music" loop src="music/lagu-kita.mp3"></audio>
+<button id="music-toggle" title="Putar / Hentikan musik">🎵</button>
+
+<!-- ================= SCREEN 1 : PUZZLE ================= -->
+<section id="puzzle-screen" class="screen active">
+  <h1>Susun dulu dong maniszz naaaa 🧩</h1>
+  <p class="sub">Susun potongan foto ini sampai jadi gambar yang sempurna kayaj kanu weheheheheh.</p>
+  <div id="puzzle-board"></div>
+  <div id="puzzle-status">Ketuk dua kotak untuk menukar posisi</div>
+  <div class="hint">0/16 sudah benar</div>
+</section>
+
+<!-- ================= SCREEN 2 : PERTANYAAN ================= -->
+<section id="question-screen" class="screen">
+  <div id="question-emoji">🥺💕</div>
+  <h1>Yeay, berhasil! 🎉</h1>
+  <p class="sub" id="question-text">Sekarang boleh kita balikannya MWHEHEHE</p>
+  <div class="btn-row">
+    <button class="btn btn-yes" id="btn-yes">Ya, mau! 💖</button>
+    <button class="btn btn-no" id="btn-no">Engga deh</button>
+  </div>
+  <p class="footer-note" id="attempt-note"></p>
+</section>
+
+<!-- ================= SCREEN 3 : GALERI ================= -->
+<section id="gallery-screen" class="screen">
+  <h1>Untuk NANAA CAKEUPP 🌸</h1>
+  <p class="sub">foto fotooo manizwsss ✨</p>
+  <div id="bubble-field"></div>
+</section>
+
+<!-- Modal detail bubble -->
+<div id="bubble-modal">
+  <div class="card" id="bubble-modal-content"></div>
+</div>
+
+<script>
+/* =========================================================
+   1) KONFIGURASI — GANTI BAGIAN INI DENGAN MILIKMU
+   ========================================================= */
+
+// Foto untuk PUZZLE (1 foto, akan dipotong jadi 4x4 = 16 bagian)
+const PUZZLE_IMAGE = "https://res.cloudinary.com/dpktfiwxj/image/upload/v1781525589/IMG-20260615-WA0062_fdhqx9.jpg"; // <-- ganti path foto kamu
+
+// Lagu background
+const MUSIC_SRC = "https://res.cloudinary.com/dpktfiwxj/video/upload/v1781525837/2_5352869529720492743_sbpqgx.m4a"; // <-- ganti path lagu kamu
+
+// Galeri kenangan: bisa berisi foto (image) atau video
+const MEMORIES = [
+  {
+    type: "image",
+    src: "https://res.cloudinary.com/dpktfiwxj/image/upload/v1781525589/IMG-20260615-WA0062_fdhqx9.jpg",
+    caption: "💖"
+  },
+
+  {
+    type: "video",
+    src: "https://res.cloudinary.com/dpktfiwxj/video/upload/v1781526690/VID-20260613-WA0031_neqzdx.mp4",
+    caption: "INI CAKEUP BEUT ANHG"
+  },
+
+  {
+    type: "video",
+    src: "https://res.cloudinary.com/dpktfiwxj/video/upload/v1781526691/VID-20260613-WA0023_ztr0ou.mp4",
+    caption: "BEUH AOALAGI INI MANTWVV"
+  },
+
+  {
+    type: "video",
+    src: "https://res.cloudinary.com/dpktfiwxj/video/upload/v1781526691/VID-20260613-WA0024_u3ol1q.mp4",
+    caption: "AOALAGI YANG INI MANTAV SEMIKJ"
+  },
+
+  {
+    type: "video",
+    src: "https://res.cloudinary.com/dpktfiwxj/video/upload/v1781526691/VID-20260613-WA0026_ygmlbh.mp4",
+    caption: "Balkkan gasih"
+  }
+];
+
+/* =========================================================
+   2) PARTIKEL LOVE & BUNGA
+   ========================================================= */
+const particleEls = ["💗","💖","🌸","🌷","✨","💕"];
+function spawnParticle(){
+  const el = document.createElement("div");
+  el.className = "particle";
+  el.textContent = particleEls[Math.floor(Math.random()*particleEls.length)];
+  el.style.left = Math.random()*100 + "vw";
+  el.style.fontSize = (16 + Math.random()*18) + "px";
+  const duration = 6 + Math.random()*6;
+  el.style.animationDuration = duration + "s";
+  document.getElementById("particles").appendChild(el);
+  setTimeout(()=> el.remove(), duration*1000);
+}
+setInterval(spawnParticle, 450);
+for(let i=0;i<10;i++) setTimeout(spawnParticle, i*200);
+
+/* =========================================================
+   3) MUSIK
+   ========================================================= */
+const music = document.getElementById("bg-music");
+music.src = MUSIC_SRC;
+let musicPlaying = false;
+document.getElementById("music-toggle").addEventListener("click", ()=>{
+  if(musicPlaying){ music.pause(); musicPlaying = false; }
+  else { music.play().catch(()=>{}); musicPlaying = true; }
+});
+
+/* =========================================================
+   4) GAME PUZZLE (4x4, tukar posisi dengan ketuk)
+   ========================================================= */
+const SIZE = 4; // 4x4 = 16 potongan
+const board = document.getElementById("puzzle-board");
+board.style.setProperty("--puzzle-img", `url('${PUZZLE_IMAGE}')`);
+
+let pieces = []; // array index 0..15 -> posisi gambar asli (correctIndex)
+let selected = null;
+let correctCount = 0;
+
+function buildPuzzle(){
+  pieces = [...Array(SIZE*SIZE).keys()];
+  // shuffle sampai benar2 acak (tidak ada yang langsung benar semua)
+  do{
+    for(let i = pieces.length -1; i>0; i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [pieces[i], pieces[j]] = [pieces[j], pieces[i]];
+    }
+  } while(pieces.every((v,i)=> v===i));
+
+  board.innerHTML = "";
+  pieces.forEach((correctIndex, slotIndex)=>{
+    const div = document.createElement("div");
+    div.className = "piece";
+    div.dataset.slot = slotIndex;
+    div.dataset.correct = correctIndex;
+    setPieceBackground(div, correctIndex);
+    div.addEventListener("click", ()=> onPieceClick(div));
+    board.appendChild(div);
+  });
+  updateStatus();
+}
+
+function setPieceBackground(div, correctIndex){
+  const row = Math.floor(correctIndex / SIZE);
+  const col = correctIndex % SIZE;
+  // background-size 400% -> tiap step 100/3 % geser
+  const x = (col / (SIZE-1)) * 100;
+  const y = (row / (SIZE-1)) * 100;
+  div.style.backgroundPosition = `${x}% ${y}%`;
+}
+
+function onPieceClick(div){
+  if(selected === null){
+    selected = div;
+    div.classList.add("selected");
+    return;
+  }
+  if(selected === div){
+    selected.classList.remove("selected");
+    selected = null;
+    return;
+  }
+  // tukar background position (data-correct) antara dua slot
+  const tmp = selected.dataset.correct;
+  selected.dataset.correct = div.dataset.correct;
+  div.dataset.correct = tmp;
+  setPieceBackground(selected, parseInt(selected.dataset.correct));
+  setPieceBackground(div, parseInt(div.dataset.correct));
+
+  selected.classList.remove("selected");
+  selected = null;
+  updateStatus();
+}
+
+function updateStatus(){
+  correctCount = 0;
+  document.querySelectorAll(".piece").forEach(div=>{
+    const slot = parseInt(div.dataset.slot);
+    const correct = parseInt(div.dataset.correct);
+    if(slot === correct){
+      div.classList.add("correct");
+      correctCount++;
+    } else {
+      div.classList.remove("correct");
+    }
+  });
+  document.querySelector(".hint").textContent = `${correctCount}/${SIZE*SIZE} sudah benar`;
+
+  if(correctCount === SIZE*SIZE){
+    document.getElementById("puzzle-status").textContent = "Sempurna! 🎉";
+    setTimeout(()=> goToScreen("question-screen"), 700);
+  } else {
+    document.getElementById("puzzle-status").textContent = "Ketuk dua kotak untuk menukar posisi";
+  }
+}
+
+buildPuzzle();
+
+/* =========================================================
+   5) PERTANYAAN BALIKAN (tombol "engga" makin besar)
+   ========================================================= */
+let noClicks = 0;
+const btnYes = document.getElementById("btn-yes");
+const btnNo = document.getElementById("btn-no");
+const attemptNote = document.getElementById("attempt-note");
+
+btnYes.addEventListener("click", ()=>{
+  goToScreen("gallery-screen");
+});
+
+btnNo.addEventListener("click", ()=>{
+  noClicks++;
+
+  if(noClicks >= 5){
+    attemptNote.textContent = "Yaudah deh, aku tunjukin sesuatu buat kamu... 💌";
+    setTimeout(()=> goToScreen("gallery-screen"), 1200);
+    return;
+  }
+
+  // tombol "Ya" makin besar & makin menarik, tombol "Engga" tetap normal
+  const scale = 1 + noClicks * 0.18;
+  btnYes.style.transform = `scale(${scale})`;
+  btnYes.style.fontSize = (1.05 + noClicks*0.12) + "rem";
+
+  const texts = [
+    "Yakin nih? Coba pikir lagi deh 🥺",
+    "Beneran nggak mau? Tombol 'Ya' makin gemes lho 💗",
+    "Hmm... coba lihat tombol satunya deh~",
+    "Tinggal sedikit lagi nih buat liat surprise 👀"
+  ];
+  document.getElementById("question-text").textContent = texts[Math.min(noClicks-1, texts.length-1)];
+  attemptNote.textContent = `Percobaan ke-${noClicks} dari 5`;
+});
+
+/* =========================================================
+   6) GALERI BUBBLE
+   ========================================================= */
+function buildGallery(){
+  const field = document.getElementById("bubble-field");
+  field.innerHTML = "";
+  const fieldW = field.clientWidth || 320;
+  const fieldH = field.clientHeight || 520;
+
+  MEMORIES.forEach((item, i)=>{
+    const size = 90 + Math.random()*60; // 90px - 150px
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.style.width = size + "px";
+    bubble.style.height = size + "px";
+    bubble.style.left = Math.random()*(fieldW - size) + "px";
+    bubble.style.top = Math.random()*(fieldH - size) + "px";
+    bubble.style.animationDelay = (Math.random()*4) + "s";
+    bubble.style.animationDuration = (5 + Math.random()*4) + "s";
+
+    if(item.type === "image"){
+      bubble.innerHTML = `<img src="${item.src}" alt="kenangan ${i+1}">`;
+    } else {
+      bubble.innerHTML = `<video src="${item.src}" muted loop autoplay playsinline></video>`;
+    }
+
+    bubble.addEventListener("click", ()=> openBubble(item));
+    field.appendChild(bubble);
+  });
+}
+
+function openBubble(item){
+  const content = document.getElementById("bubble-modal-content");
+  let mediaHtml = "";
+  if(item.type === "image"){
+    mediaHtml = `<img src="${item.src}" alt="kenangan">`;
+  } else {
+    mediaHtml = `<video src="${item.src}" controls autoplay></video>`;
+  }
+  content.innerHTML = `${mediaHtml}<p>${item.caption}</p><button class="close-btn" onclick="closeBubble()">Tutup</button>`;
+  document.getElementById("bubble-modal").classList.add("active");
+}
+function closeBubble(){
+  document.getElementById("bubble-modal").classList.remove("active");
+  document.getElementById("bubble-modal-content").innerHTML = "";
+      }
+
+/* =========================================================
+   7) NAVIGASI ANTAR SCREEN
+   ========================================================= */
+function goToScreen(id){
+  document.querySelectorAll(".screen").forEach(s=> s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  if(id === "gallery-screen"){
+    buildGallery();
+    if(!musicPlaying){
+      music.play().catch(()=>{});
+      musicPlaying = true;
+    }
+  }
+}
+</script>
+
+</body>
+</html>
