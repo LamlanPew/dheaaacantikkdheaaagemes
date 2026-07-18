@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Puzzle Untukmu 💗</title>
+<title>Untukmu 💗</title>
 <style>
   :root{
     --cream:#FFF6F1;
@@ -55,56 +55,58 @@
   }
   p.sub{ font-size:.95rem; color:var(--plum); opacity:.8; margin-bottom:20px; max-width:340px; }
 
-  /* ===== PUZZLE ===== */
-  #puzzle-board{
-    display:grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(4, 1fr);
-    width:min(86vw, 360px);
-    height:min(86vw, 360px);
-    gap:3px;
-    border-radius:18px;
-    overflow:hidden;
-    box-shadow:0 12px 30px rgba(232,96,122,.25);
-    border:4px solid #fff;
-    background:#fff;
+  /* ===== PROGRESS DOTS ===== */
+  #progress-dots{
+    position:fixed; top:18px; left:50%; transform:translateX(-50%);
+    display:flex; gap:8px; z-index:60;
   }
-  .piece{
-    background-size: 400% 400%;
-    background-image:var(--puzzle-img);
-    cursor:pointer;
-    transition: transform .15s;
-    border:1px solid rgba(255,255,255,.4);
+  #progress-dots .dot{
+    width:8px; height:8px; border-radius:50%;
+    background:rgba(232,96,122,.25);
+    transition: all .3s ease;
   }
-  .piece.selected{ outline:3px solid var(--gold); transform:scale(0.94); z-index:2; }
-  .piece.correct{ outline:2px solid #8de29c; }
-
-  #puzzle-status{ margin-top:18px; font-weight:700; color:var(--rose); min-height:24px; }
-  .hint{ font-size:.8rem; opacity:.7; margin-top:6px; }
+  #progress-dots .dot.active{ background:var(--rose); width:22px; border-radius:6px; }
 
   /* ===== TOMBOL ===== */
   .btn{
     border:none; border-radius:999px;
     padding:14px 36px; font-size:1.05rem; font-weight:700;
     font-family:'Quicksand', sans-serif;
-    cursor:pointer; transition: all .25s ease;
+    cursor:pointer; transition: transform .2s ease, background .2s ease, opacity .2s ease;
     box-shadow:0 6px 16px rgba(0,0,0,.08);
   }
-  .btn-yes{ background:var(--rose); color:#fff; }
-  .btn-yes:hover{ background:#d44a64; transform:scale(1.05); }
-  .btn-no{ background:#fff; color:var(--plum); border:2px solid var(--lavender); }
+  .btn-yes{ background:var(--rose); color:#fff; position:relative; }
+  .btn-yes:hover{ background:#d44a64; }
+  .btn-yes::after{
+    content:""; position:absolute; inset:-6px; border-radius:999px;
+    border:2px solid rgba(232,96,122,.4); opacity:0;
+    animation: ring 1.8s ease-out infinite;
+  }
+  @keyframes ring{
+    0%{ opacity:.6; transform:scale(1); }
+    100%{ opacity:0; transform:scale(1.25); }
+  }
+  .btn-no{ background:#fff; color:var(--plum); border:2px solid var(--lavender); position:relative; }
 
   .btn-row{
-    display:flex; gap:18px; margin-top:30px; align-items:center; justify-content:center;
-    flex-wrap:wrap;
+    display:flex; gap:18px; margin-top:34px; align-items:center; justify-content:center;
+    flex-wrap:wrap; position:relative; min-height:70px; width:100%;
   }
 
   #question-emoji{ font-size:4rem; margin-bottom:6px; animation: pulse 1.6s infinite; }
   @keyframes pulse{ 0%,100%{transform:scale(1);} 50%{transform:scale(1.12);} }
 
+  #ask-photo{
+    width:150px; height:150px; border-radius:50%; object-fit:cover;
+    border:5px solid #fff; box-shadow:0 12px 26px rgba(232,96,122,.3);
+    margin-bottom:18px;
+  }
+
+  .footer-note{ margin-top:26px; font-size:.8rem; opacity:.65; max-width:320px; z-index:5; position:relative; min-height:16px; }
+
   /* ===== GALERI BUBBLE ===== */
   #gallery-screen{
-    overflow:hidden; padding-top:60px; padding-bottom:120px;
+    overflow:hidden; padding-top:70px; padding-bottom:130px;
   }
   #gallery-screen h1{ position:relative; z-index:5; margin-bottom:4px;}
   #bubble-field{
@@ -118,6 +120,14 @@
     animation: floatBubble 7s ease-in-out infinite;
     cursor:pointer;
     background:#fff;
+    transition: transform .25s ease, box-shadow .25s ease;
+  }
+  .bubble:active{ transform: scale(0.92); }
+  .bubble .badge{
+    position:absolute; bottom:6px; right:6px; font-size:14px;
+    background:rgba(255,255,255,.85); border-radius:50%;
+    width:22px; height:22px; display:flex; align-items:center; justify-content:center;
+    box-shadow:0 2px 6px rgba(0,0,0,.15);
   }
   .bubble img, .bubble video{
     width:100%; height:100%; object-fit:cover; display:block;
@@ -127,17 +137,24 @@
     50%{ transform: translateY(-22px) translateX(8px); }
   }
 
+  .gallery-cta{
+    margin-top:10px; font-size:.85rem; color:var(--plum); opacity:.75;
+  }
+
   /* overlay deskripsi saat bubble ditekan */
   #bubble-modal{
     position:fixed; inset:0; background:rgba(90,58,82,.55);
     display:none; align-items:center; justify-content:center; z-index:50;
     padding:20px;
+    backdrop-filter: blur(3px);
   }
-  #bubble-modal.active{ display:flex; }
+  #bubble-modal.active{ display:flex; animation: fadeIn .3s ease; }
   #bubble-modal .card{
     background:#fff; border-radius:22px; padding:18px; max-width:340px; width:100%;
     text-align:center; box-shadow:0 20px 50px rgba(0,0,0,.25);
+    animation: popIn .35s ease;
   }
+  @keyframes popIn{ from{ transform:scale(.85); opacity:0; } to{ transform:scale(1); opacity:1; } }
   #bubble-modal .card img, #bubble-modal .card video{
     width:100%; border-radius:16px; max-height:320px; object-fit:cover; margin-bottom:12px;
   }
@@ -146,6 +163,35 @@
     margin-top:14px; background:var(--rose); color:#fff; border:none; border-radius:999px;
     padding:10px 26px; font-weight:700; cursor:pointer;
   }
+
+  /* heart burst saat bubble ditekan */
+  .heart-burst{
+    position:fixed; pointer-events:none; z-index:55; font-size:20px;
+    animation: burst .9s ease-out forwards;
+  }
+  @keyframes burst{
+    0%{ transform: translate(0,0) scale(0.6); opacity:1; }
+    100%{ transform: translate(var(--dx), var(--dy)) scale(1.4); opacity:0; }
+  }
+
+  /* ===== SURAT CINTA ===== */
+  #letter-screen{ padding-top:60px; }
+  #letter-card{
+    background:#fff; border-radius:24px; padding:32px 26px; max-width:380px; width:100%;
+    box-shadow:0 16px 40px rgba(232,96,122,.22); position:relative;
+  }
+  #letter-card::before{
+    content:"💌"; font-size:2.2rem; display:block; margin-bottom:8px;
+  }
+  #letter-text{
+    font-size:1rem; line-height:1.7; color:var(--plum); text-align:left;
+    white-space:pre-wrap; min-height:180px;
+  }
+  #letter-text .cursor{
+    display:inline-block; width:2px; background:var(--rose); margin-left:2px;
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink{ 50%{ opacity:0; } }
 
   /* ===== MUSIK ===== */
   #music-toggle{
@@ -156,30 +202,37 @@
     box-shadow:0 8px 20px rgba(232,96,122,.4);
     display:flex; align-items:center; justify-content:center;
   }
+  #music-toggle.spinning{ animation: spin 4s linear infinite; }
+  @keyframes spin{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
 
-  .footer-note{ margin-top:26px; font-size:.8rem; opacity:.65; max-width:320px; z-index:5; position:relative; }
+  .nav-back{
+    position:fixed; top:16px; left:16px; z-index:60;
+    background:rgba(255,255,255,.85); border:none; border-radius:999px;
+    padding:8px 16px; font-weight:700; color:var(--plum); cursor:pointer;
+    box-shadow:0 4px 12px rgba(0,0,0,.08); font-size:.85rem;
+    display:none;
+  }
+  .nav-back.show{ display:inline-flex; align-items:center; gap:4px; }
 </style>
 </head>
 <body>
 
 <div id="particles"></div>
-<audio id="bg-music" loop src="music/lagu-kita.mp3"></audio>
+<audio id="bg-music" loop></audio>
 <button id="music-toggle" title="Putar / Hentikan musik">🎵</button>
+<button class="nav-back" id="nav-back">← kembali</button>
+<div id="progress-dots">
+  <div class="dot active" data-screen="question-screen"></div>
+  <div class="dot" data-screen="gallery-screen"></div>
+  <div class="dot" data-screen="letter-screen"></div>
+</div>
 
-<!-- ================= SCREEN 1 : PUZZLE ================= -->
-<section id="puzzle-screen" class="screen active">
-  <h1>Susun dulu dong linnnn 🧩</h1>
-  <p class="sub">Susun potongan foto ini sampai jadi gambar yang sempurna kayaj kanu weheheheheh.</p>
-  <div id="puzzle-board"></div>
-  <div id="puzzle-status">Ketuk dua kotak untuk menukar posisi</div>
-  <div class="hint">0/16 sudah benar</div>
-</section>
-
-<!-- ================= SCREEN 2 : PERTANYAAN ================= -->
-<section id="question-screen" class="screen">
+<!-- ================= SCREEN 1 : NEMBAK ================= -->
+<section id="question-screen" class="screen active">
+  <img id="ask-photo" src="https://res.cloudinary.com/dpktfiwxj/image/upload/v1784336236/IMG-20260717-WA0053_mhxmg6.jpg" alt="foto kamu">
   <div id="question-emoji">🥺💕</div>
-  <h1>Yeay, berhasil! 🎉</h1>
-  <p class="sub" id="question-text">Sekarang boleh kita pacaran nya MWHEHEHE</p>
+  <h1>Mau gak jadi pacar aku?</h1>
+  <p class="sub" id="question-text">Udah lama mau nanya ini, sekarang aku beraniin diri deh 🙈</p>
   <div class="btn-row">
     <button class="btn btn-yes" id="btn-yes">Ya, mau! 💖</button>
     <button class="btn btn-no" id="btn-no">Engga deh</button>
@@ -187,11 +240,20 @@
   <p class="footer-note" id="attempt-note"></p>
 </section>
 
-<!-- ================= SCREEN 3 : GALERI ================= -->
+<!-- ================= SCREEN 2 : GALERI ================= -->
 <section id="gallery-screen" class="screen">
-  <h1>Untuk melindaaaa CAKEUPP 🌸</h1>
-  <p class="sub">foto fotooo manizwsss ✨</p>
+  <h1>Yeay, makasih ya 🌸</h1>
+  <p class="sub">ini kenangan kenangan kita, ketuk buat liat lebih besar ✨</p>
   <div id="bubble-field"></div>
+  <p class="gallery-cta">udah liat semua? <span id="letter-link" style="color:var(--rose); font-weight:700; cursor:pointer; text-decoration:underline;">baca surat buat kamu →</span></p>
+</section>
+
+<!-- ================= SCREEN 3 : SURAT ================= -->
+<section id="letter-screen" class="screen">
+  <div id="letter-card">
+    <div id="letter-text"><span class="cursor">&nbsp;</span></div>
+  </div>
+  <p class="footer-note">dari aku, buat kamu 💗</p>
 </section>
 
 <!-- Modal detail bubble -->
@@ -201,47 +263,49 @@
 
 <script>
 /* =========================================================
-   1) KONFIGURASI — GANTI BAGIAN INI DENGAN MILIKMU
+   1) KONFIGURASI
    ========================================================= */
 
-// Foto untuk PUZZLE (1 foto, akan dipotong jadi 4x4 = 16 bagian)
-const PUZZLE_IMAGE = "https://res.cloudinary.com/dpktfiwxj/image/upload/v1782471574/3c1ace542faf555082f09d1a15c9c4c2.webp_c8pc1z.webp"; // <-- ganti path foto kamu
+const MUSIC_SRC = "https://res.cloudinary.com/dpktfiwxj/video/upload/v1784337769/audio_7702803676_4_lgvnnx.mp3";
 
-// Lagu background
-const MUSIC_SRC = "https://res.cloudinary.com/dpktfiwxj/video/upload/v1782471649/audio_7702803676_1_usmmh5.mp3"; // <-- ganti path lagu kamu
-
-// Galeri kenangan: bisa berisi foto (image) atau video
+// Galeri kenangan: foto & video
 const MEMORIES = [
   {
-    type: "image",
-    src: "https://res.cloudinary.com/dpktfiwxj/image/upload/v1782470561/IMG-20260626-WA0008_ccpuoa.jpg",
-    caption: "💖"
+    type: "video",
+    src: "https://res.cloudinary.com/dpktfiwxj/video/upload/v1784293413/VID-20260717-WA0027_vuygjq.mp4",
+    caption: ""
   },
-
   {
-    type: "image",
-    src: "https://res.cloudinary.com/dpktfiwxj/image/upload/v1782470573/IMG-20260626-WA0006_vaeli3.jpg",
-    caption: "INI CAKEUP BEUT ANHG"
+    type: "video",
+    src: "https://res.cloudinary.com/dpktfiwxj/video/upload/v1784293447/VID-20260717-WA0046_r2atg8.mp4",
+    caption: ""
   },
-
   {
-    type: "image",
-    src: "https://res.cloudinary.com/dpktfiwxj/image/upload/v1782470580/IMG-20260626-WA0007_volerq.jpg",
-    caption: "BEUH AOALAGI INI MANTWVV"
+    type: "video",
+    src: "https://res.cloudinary.com/dpktfiwxj/video/upload/v1784336276/VID-20260717-WA0031_lyzhi8.mp4",
+    caption: ""
   },
-
   {
-    type: "image",
-    src: "https://res.cloudinary.com/dpktfiwxj/image/upload/v1782470592/IMG-20260626-WA0004_vpxxpr.jpg",
-    caption: "AOALAGI YANG INI MANTAV SEMIKJ"
+    type: "video",
+    src: "https://res.cloudinary.com/dpktfiwxj/video/upload/v1784293368/VID-20260717-WA0048_pjdesm.mp4",
+    caption: ""
   },
-
   {
-    type: "image",
-    src: "https://res.cloudinary.com/dpktfiwxj/image/upload/v1782471212/Screenshot_2026-06-26-17-52-28-475_com.instagram.android_zbbhv6.jpg",
-    caption: "pacaran gasih"
+    type: "video",
+    src: "https://res.cloudinary.com/dpktfiwxj/video/upload/v1784293451/VID-20260717-WA0049_kwnqsi.mp4",
+    caption: ""
   }
 ];
+
+const LETTER_TEXT = `Hai dheaaaa
+
+Hmmzz jujur tidak percaya gak ekspek kau mau pacaran sama aku jujur beruntung banget aku kenal kamu aku aku bisa lebih dihargain.
+aku disaat sekarang ini mah emang gak punya apa apa tapi aku pasti usahain semuanya buat kamu 
+
+Makasihj nyaa udaah nerima akuu aku gak akan melunjak,
+Makasih nyaa kitaa kudu betah kudu langgeng.
+
+I Always Loving You . `;
 
 /* =========================================================
    2) PARTIKEL LOVE & BUNGA
@@ -266,112 +330,35 @@ for(let i=0;i<10;i++) setTimeout(spawnParticle, i*200);
    ========================================================= */
 const music = document.getElementById("bg-music");
 music.src = MUSIC_SRC;
+const musicBtn = document.getElementById("music-toggle");
 let musicPlaying = false;
-document.getElementById("music-toggle").addEventListener("click", ()=>{
-  if(musicPlaying){ music.pause(); musicPlaying = false; }
-  else { music.play().catch(()=>{}); musicPlaying = true; }
+function playMusic(){
+  music.play().then(()=>{
+    musicPlaying = true;
+    musicBtn.classList.add("spinning");
+  }).catch(()=>{});
+}
+function pauseMusic(){
+  music.pause();
+  musicPlaying = false;
+  musicBtn.classList.remove("spinning");
+}
+musicBtn.addEventListener("click", ()=>{
+  if(musicPlaying){ pauseMusic(); } else { playMusic(); }
 });
 
 /* =========================================================
-   4) GAME PUZZLE (4x4, tukar posisi dengan ketuk)
-   ========================================================= */
-const SIZE = 4; // 4x4 = 16 potongan
-const board = document.getElementById("puzzle-board");
-board.style.setProperty("--puzzle-img", `url('${PUZZLE_IMAGE}')`);
-
-let pieces = []; // array index 0..15 -> posisi gambar asli (correctIndex)
-let selected = null;
-let correctCount = 0;
-
-function buildPuzzle(){
-  pieces = [...Array(SIZE*SIZE).keys()];
-  // shuffle sampai benar2 acak (tidak ada yang langsung benar semua)
-  do{
-    for(let i = pieces.length -1; i>0; i--){
-      const j = Math.floor(Math.random()*(i+1));
-      [pieces[i], pieces[j]] = [pieces[j], pieces[i]];
-    }
-  } while(pieces.every((v,i)=> v===i));
-
-  board.innerHTML = "";
-  pieces.forEach((correctIndex, slotIndex)=>{
-    const div = document.createElement("div");
-    div.className = "piece";
-    div.dataset.slot = slotIndex;
-    div.dataset.correct = correctIndex;
-    setPieceBackground(div, correctIndex);
-    div.addEventListener("click", ()=> onPieceClick(div));
-    board.appendChild(div);
-  });
-  updateStatus();
-}
-
-function setPieceBackground(div, correctIndex){
-  const row = Math.floor(correctIndex / SIZE);
-  const col = correctIndex % SIZE;
-  // background-size 400% -> tiap step 100/3 % geser
-  const x = (col / (SIZE-1)) * 100;
-  const y = (row / (SIZE-1)) * 100;
-  div.style.backgroundPosition = `${x}% ${y}%`;
-}
-
-function onPieceClick(div){
-  if(selected === null){
-    selected = div;
-    div.classList.add("selected");
-    return;
-  }
-  if(selected === div){
-    selected.classList.remove("selected");
-    selected = null;
-    return;
-  }
-  // tukar background position (data-correct) antara dua slot
-  const tmp = selected.dataset.correct;
-  selected.dataset.correct = div.dataset.correct;
-  div.dataset.correct = tmp;
-  setPieceBackground(selected, parseInt(selected.dataset.correct));
-  setPieceBackground(div, parseInt(div.dataset.correct));
-
-  selected.classList.remove("selected");
-  selected = null;
-  updateStatus();
-}
-
-function updateStatus(){
-  correctCount = 0;
-  document.querySelectorAll(".piece").forEach(div=>{
-    const slot = parseInt(div.dataset.slot);
-    const correct = parseInt(div.dataset.correct);
-    if(slot === correct){
-      div.classList.add("correct");
-      correctCount++;
-    } else {
-      div.classList.remove("correct");
-    }
-  });
-  document.querySelector(".hint").textContent = `${correctCount}/${SIZE*SIZE} sudah benar`;
-
-  if(correctCount === SIZE*SIZE){
-    document.getElementById("puzzle-status").textContent = "Sempurna! 🎉";
-    setTimeout(()=> goToScreen("question-screen"), 700);
-  } else {
-    document.getElementById("puzzle-status").textContent = "Ketuk dua kotak untuk menukar posisi";
-  }
-}
-
-buildPuzzle();
-
-/* =========================================================
-   5) PERTANYAAN BALIKAN (tombol "engga" makin besar)
+   4) LAYAR NEMBAK — tombol "Ya" makin besar, "Engga" kabur
    ========================================================= */
 let noClicks = 0;
 const btnYes = document.getElementById("btn-yes");
 const btnNo = document.getElementById("btn-no");
 const attemptNote = document.getElementById("attempt-note");
+const btnRow = document.querySelector(".btn-row");
 
 btnYes.addEventListener("click", ()=>{
-  goToScreen("gallery-screen");
+  celebrateYes();
+  setTimeout(()=> goToScreen("gallery-screen"), 900);
 });
 
 btnNo.addEventListener("click", ()=>{
@@ -379,27 +366,45 @@ btnNo.addEventListener("click", ()=>{
 
   if(noClicks >= 5){
     attemptNote.textContent = "Yaudah deh, aku tunjukin sesuatu buat kamu... 💌";
+    btnNo.style.display = "none";
     setTimeout(()=> goToScreen("gallery-screen"), 1200);
     return;
   }
 
-  // tombol "Ya" makin besar & makin menarik, tombol "Engga" tetap normal
-  const scale = 1 + noClicks * 0.18;
+  // tombol "Ya" makin besar & makin menarik
+  const scale = 1 + noClicks * 0.22;
   btnYes.style.transform = `scale(${scale})`;
   btnYes.style.fontSize = (1.05 + noClicks*0.12) + "rem";
+
+  // tombol "Engga" makin kecil & lari ke posisi random tiap diklik
+  const shrink = Math.max(0.5, 1 - noClicks * 0.12);
+  const rowRect = btnRow.getBoundingClientRect();
+  const maxX = Math.max(0, rowRect.width - 110);
+  const randX = (Math.random()*maxX - maxX/2);
+  const randY = (Math.random()*30 - 15);
+  btnNo.style.transform = `scale(${shrink}) translate(${randX}px, ${randY}px)`;
+  btnNo.style.opacity = Math.max(0.45, 1 - noClicks*0.12);
 
   const texts = [
     "Yakin nih? Coba pikir lagi deh 🥺",
     "Beneran nggak mau? Tombol 'Ya' makin gemes lho 💗",
-    "Hmm... coba lihat tombol satunya deh~",
-    "Tinggal sedikit lagi nih buat liat surprise 👀"
+    "Hmm... tombol 'Engga' nya jadi susah dipencet ya~ 👀",
+    "Tinggal sedikit lagi nih buat liat surprise nya 💌"
   ];
   document.getElementById("question-text").textContent = texts[Math.min(noClicks-1, texts.length-1)];
   attemptNote.textContent = `Percobaan ke-${noClicks} dari 5`;
 });
 
+function celebrateYes(){
+  // heart burst dari tengah layar
+  const rect = btnYes.getBoundingClientRect();
+  for(let i=0;i<18;i++){
+    burstHeartAt(rect.left + rect.width/2, rect.top + rect.height/2);
+  }
+}
+
 /* =========================================================
-   6) GALERI BUBBLE
+   5) GALERI BUBBLE
    ========================================================= */
 function buildGallery(){
   const field = document.getElementById("bubble-field");
@@ -408,7 +413,7 @@ function buildGallery(){
   const fieldH = field.clientHeight || 520;
 
   MEMORIES.forEach((item, i)=>{
-    const size = 90 + Math.random()*60; // 90px - 150px
+    const size = 92 + Math.random()*64; // 92px - 156px
     const bubble = document.createElement("div");
     bubble.className = "bubble";
     bubble.style.width = size + "px";
@@ -421,10 +426,14 @@ function buildGallery(){
     if(item.type === "image"){
       bubble.innerHTML = `<img src="${item.src}" alt="kenangan ${i+1}">`;
     } else {
-      bubble.innerHTML = `<video src="${item.src}" muted loop autoplay playsinline></video>`;
+      bubble.innerHTML = `<video src="${item.src}" muted loop autoplay playsinline></video><span class="badge"></span>`;
     }
 
-    bubble.addEventListener("click", ()=> openBubble(item));
+    bubble.addEventListener("click", (e)=>{
+      const rect = bubble.getBoundingClientRect();
+      for(let k=0;k<8;k++) burstHeartAt(rect.left+rect.width/2, rect.top+rect.height/2);
+      openBubble(item);
+    });
     field.appendChild(bubble);
   });
 }
@@ -435,7 +444,7 @@ function openBubble(item){
   if(item.type === "image"){
     mediaHtml = `<img src="${item.src}" alt="kenangan">`;
   } else {
-    mediaHtml = `<video src="${item.src}" controls autoplay></video>`;
+    mediaHtml = `<video src="${item.src}" controls autoplay playsinline></video>`;
   }
   content.innerHTML = `${mediaHtml}<p>${item.caption}</p><button class="close-btn" onclick="closeBubble()">Tutup</button>`;
   document.getElementById("bubble-modal").classList.add("active");
@@ -443,22 +452,79 @@ function openBubble(item){
 function closeBubble(){
   document.getElementById("bubble-modal").classList.remove("active");
   document.getElementById("bubble-modal-content").innerHTML = "";
-      }
+}
+
+function burstHeartAt(x,y){
+  const heart = document.createElement("div");
+  heart.className = "heart-burst";
+  heart.textContent = ["💗","💖","💕","✨"][Math.floor(Math.random()*4)];
+  heart.style.left = x + "px";
+  heart.style.top = y + "px";
+  const dx = (Math.random()*160 - 80) + "px";
+  const dy = (-(60 + Math.random()*100)) + "px";
+  heart.style.setProperty("--dx", dx);
+  heart.style.setProperty("--dy", dy);
+  document.body.appendChild(heart);
+  setTimeout(()=> heart.remove(), 900);
+}
+
+document.getElementById("letter-link").addEventListener("click", ()=>{
+  goToScreen("letter-screen");
+});
+
+/* =========================================================
+   6) SURAT CINTA — efek ketik
+   ========================================================= */
+let letterTyped = false;
+function typeLetter(){
+  if(letterTyped) return;
+  letterTyped = true;
+  const el = document.getElementById("letter-text");
+  el.innerHTML = "";
+  const cursor = document.createElement("span");
+  cursor.className = "cursor";
+  cursor.innerHTML = "&nbsp;";
+  let i = 0;
+  function step(){
+    if(i <= LETTER_TEXT.length){
+      el.textContent = LETTER_TEXT.slice(0, i);
+      el.appendChild(cursor);
+      i++;
+      setTimeout(step, 28);
+    }
+  }
+  step();
+}
 
 /* =========================================================
    7) NAVIGASI ANTAR SCREEN
    ========================================================= */
+const SCREEN_ORDER = ["question-screen", "gallery-screen", "letter-screen"];
 function goToScreen(id){
   document.querySelectorAll(".screen").forEach(s=> s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
+
+  document.querySelectorAll("#progress-dots .dot").forEach(d=>{
+    d.classList.toggle("active", d.dataset.screen === id);
+  });
+
+  const navBack = document.getElementById("nav-back");
+  navBack.classList.toggle("show", id !== "question-screen");
+
   if(id === "gallery-screen"){
     buildGallery();
-    if(!musicPlaying){
-      music.play().catch(()=>{});
-      musicPlaying = true;
-    }
+    if(!musicPlaying) playMusic();
+  }
+  if(id === "letter-screen"){
+    typeLetter();
   }
 }
+
+document.getElementById("nav-back").addEventListener("click", ()=>{
+  const current = SCREEN_ORDER.find(id => document.getElementById(id).classList.contains("active"));
+  const idx = SCREEN_ORDER.indexOf(current);
+  if(idx > 0) goToScreen(SCREEN_ORDER[idx-1]);
+});
 </script>
 
 </body>
